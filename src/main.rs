@@ -2,7 +2,6 @@ use csv::Reader;
 use std::error::Error;
 use std::{env, io};
 use std::fs::File;
-use std::io::{stdin, stdout, Write};
 use std::process;
 
 fn main() {
@@ -12,8 +11,14 @@ fn main() {
     let words = get_words();
     let words = match words {
         Ok(words) => words,
+        // error handling could be more robust here
         Err(error) => vec![String::from("taco"), String::from("additional words")]
     };
+    // testcode
+    for line in words{
+        print!("{line}");
+    }
+
     let word = gen_word();
     println!("{}", word)
 }
@@ -27,9 +32,9 @@ fn get_words() -> Result<Vec<String>, Box<dyn Error>>{
     let mut words = Vec::new();
     for result in reader.records() {
         for row in result.iter() {
-            let mut row = result.as_slice();
-            words.push(row);
-            print!("{words}");
+            // TODO: this code is unsafe, remove after testing
+            let mut row = row.as_slice();
+            words.push(String::from(row));
         }
     }
     Ok(words)
