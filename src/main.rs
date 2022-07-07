@@ -1,20 +1,43 @@
-use std::env;
+use csv::Reader;
+use std::error::Error;
+use std::{env, io};
+use std::fs::File;
 use std::io::{stdin, stdout, Write};
-use memorable_wordlist::{space_delimited, WORDS};
+use std::process;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     println!("{:?}", args);
     // todo: parse value from args and feed into gen_word
-    let words: Vec<String> = gen_word(1);
+    let words = get_words();
+    let words = match words {
+        Ok(words) => words,
+        Err(error) => vec![String::from("taco"), String::from("additional words")]
+    };
+    let word = gen_word();
     println!("{}", word)
 }
 
-fn gen_word(word_count: u32) -> Vec<String> {
-    words: Vec<String>;
-    for x in 1..word_count {
+fn get_words() -> Result<Vec<String>, Box<dyn Error>>{
+    let file_path = "../wordlist.csv";
+    let file = File::open(file_path)?;
+    let mut reader = csv::ReaderBuilder::new()
+        .from_reader(file);
 
+    let mut words = Vec::new();
+    for result in reader.records() {
+        for row in result.iter() {
+            let mut row = result.as_slice();
+            words.push(row);
+            print!("{words}");
+        }
     }
+    Ok(words)
+}
+
+fn gen_word() -> String {
+    let words: String = String::new();
+
     return words
 }
 
