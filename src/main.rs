@@ -7,7 +7,8 @@ use std::process;
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    let file_path = "../wordlist.csv";
+    // todo: declare all paths based on file rather than working directory for safety
+    let file_path = "wordlist.csv";
 
     let words = get_words(file_path);
     let words = match words {
