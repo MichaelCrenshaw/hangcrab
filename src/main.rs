@@ -36,8 +36,7 @@ fn get_words(file_path: &str) -> Result<Vec<String>, Box<dyn Error>>{
     let mut words = Vec::new();
     for result in reader.records() {
         for row in result.iter() {
-            // TODO: this code is unsafe, remove after testing
-            let mut row = row.as_slice();
+            let mut row = row.as_slice()?;
             words.push(String::from(row));
         }
     }
