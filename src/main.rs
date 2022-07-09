@@ -6,25 +6,28 @@ use std::process;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    println!("{:?}", args);
-    // todo: parse value from args and feed into gen_word
-    let words = get_words();
+
+    let file_path = "../wordlist.csv";
+
+    let words = get_words(file_path);
     let words = match words {
         Ok(words) => words,
-        // error handling could be more robust here
-        Err(error) => vec![String::from("taco"), String::from("additional words")]
+        Err(error) => {
+            print!("{error}");
+            vec![String::from("taco"), String::from("additional words")]
+        }
     };
     // testcode
     for line in words{
         print!("{line}");
     }
 
+    // todo: parse value from args and feed into gen_word
     let word = gen_word();
     println!("{}", word)
 }
 
-fn get_words() -> Result<Vec<String>, Box<dyn Error>>{
-    let file_path = "../wordlist.csv";
+fn get_words(file_path: &str) -> Result<Vec<String>, Box<dyn Error>>{
     let file = File::open(file_path)?;
     let mut reader = csv::ReaderBuilder::new()
         .from_reader(file);
