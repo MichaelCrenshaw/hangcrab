@@ -3,6 +3,7 @@ use std::error::Error;
 use std::{env, io};
 use std::collections::HashMap;
 use std::fs::File;
+use std::ops::Add;
 use std::process;
 use rand::{random, Rng};
 
@@ -22,7 +23,7 @@ fn main() {
     };
 
     let mut new_game = true;
-    while new_game{
+    while new_game {
         println!("Starting new game");
         let answer = match get_random_phrase(&phrase_list) {
             Some(phrase) => phrase,
@@ -41,11 +42,17 @@ fn main() {
             // todo: handle errors gracefully
             io::stdin().read_line(&mut user_input).expect("Failed to read line properly");
 
+            // remove newline characters from user input
             if user_input.ends_with('\n') {
                 user_input.pop();
                 if user_input.ends_with('\r') {
                     user_input.pop();
                 }
+            }
+
+            if user_input.len() < 1 {
+                println!("Please enter a guess or command");
+                continue
             }
 
             let mut chars: Vec<char> = user_input.chars().collect();
@@ -61,10 +68,6 @@ fn main() {
                 continue
             }
 
-            for character in chars.iter() {
-                println!("Character {} found", character)
-            }
-
             if user_input.len() > 1 {
                 println!("User input was large");
                 println!("{}", user_input.len());
@@ -73,15 +76,29 @@ fn main() {
             }
 
             let guess = &chars[0];
+
+            if guessed_letters.contains(&guess.to_lowercase().collect::<Vec<_>>()[0]) {
+                println!("You've already guessed {}", guess);
+                continue
+            }
+
+
             let guess_result = guess_letter(&chars[0], &letter_locations);
             match guess_result {
-                Some(v) => {guessed_letters.push(*guess); println!("Your guess was correct and appears {v} times")},
+                Some(v) => {
+                    guessed_letters.push(*&guess.to_lowercase().collect::<Vec<_>>()[0]);
+                    println!("Your guess was correct and appears {v} times")
+                },
                 None => {println!("Guess again")}
             }
-            // let (letter_found, mut letter_locations) = guess_letter(&chars[0], &answer, letter_locations);
 
+            if check_victory(&answer, &guessed_letters) {
+                winner = true;
+                continue
+            }
+
+            println!("{}\n", get_word_progress(&answer, &guessed_letters))
         }
-        println!("Your phrase is: {answer} \n")
     }
     println!("Thanks for playing hangcrab");
     process::exit(0);
@@ -108,7 +125,6 @@ fn get_random_phrase(word_list: &Vec<String>) -> Option<String> {
     Some(phrase.to_owned())
 }
 
-// todo: disable guessing the same letter twice
 // Consumes a guess, and the hashmap representation of the correct answer
 // Returns a vector of the positions that letter is found at in the answer string.
 fn guess_letter(guess: &char, letter_locations: &HashMap<char, Vec<u16>>) -> Option<u32> {
@@ -122,6 +138,9 @@ fn guess_word(guess: &String, answer: &String) {
     return
 }
 
+
+// todo: remove this, this was the wrong way to do things.
+// ^_  It would have technically been faster... but much messier to handle the answer this way
 fn hashify_answer(answer: &String) -> HashMap<char, Vec<u16>> {
     let answer = answer.to_lowercase();
     let mut letter_locations: HashMap<char, Vec<u16>> = HashMap::new();
@@ -140,8 +159,43 @@ fn hashify_answer(answer: &String) -> HashMap<char, Vec<u16>> {
     return letter_locations
 }
 
+fn get_word_progress(answer: &String, guessed_letters: &Vec<char>) -> String {
+    let chars = answer.chars();
+    let mut result = String::new();
+    for ch in chars {
+        match ch {
+            'a'..='z' | 'A'..='Z' => {
+                if guessed_letters.contains(&ch.to_lowercase().collect::<Vec<_>>()[0]) {
+                    result.push(ch);
+                } else {
+                    result.push('_')
+                }
+            },
+            '\'' | ' ' | '-' => {
+                result.push(ch);
+            },
+            _ => {}
+        }
+    }
+    return result.to_owned();
+}
+
 // Possibly rename this, as it doesn't describe the function behavior very well
 // Add a part of the crab to noose
 fn hang_crustacean_part() {
     return
+}
+
+fn check_victory(answer: &String, guessed_letters: &Vec<char>) -> bool {
+    let mut ans = &answer.replace(&['\'', '_', ' ', '-'][..], "");
+
+    let chars = ans.chars();
+    for ch in chars {
+        if guessed_letters.contains(&ch.to_lowercase().collect::<Vec<_>>()[0]) {
+            continue
+        }
+        return false
+    }
+
+    return true
 }
