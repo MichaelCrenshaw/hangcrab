@@ -23,7 +23,7 @@ fn main() {
     };
 
     let mut new_game = true;
-    while new_game{
+    while new_game {
         println!("Starting new game");
         let answer = match get_random_phrase(&phrase_list) {
             Some(phrase) => phrase,
@@ -85,12 +85,20 @@ fn main() {
 
             let guess_result = guess_letter(&chars[0], &letter_locations);
             match guess_result {
-                Some(v) => {guessed_letters.push(*guess); println!("Your guess was correct and appears {v} times")},
+                Some(v) => {
+                    guessed_letters.push(*&guess.to_lowercase().collect::<Vec<_>>()[0]);
+                    println!("Your guess was correct and appears {v} times")
+                },
                 None => {println!("Guess again")}
             }
+
+            if check_victory(&answer, &guessed_letters) {
+                winner = true;
+                continue
+            }
+
             println!("{}\n", get_word_progress(&answer, &guessed_letters))
         }
-        println!("Your phrase is: {answer} \n")
     }
     println!("Thanks for playing hangcrab");
     process::exit(0);
@@ -130,6 +138,9 @@ fn guess_word(guess: &String, answer: &String) {
     return
 }
 
+
+// todo: remove this, this was the wrong way to do things.
+// ^_  It would have technically been faster... but much messier to handle the answer this way
 fn hashify_answer(answer: &String) -> HashMap<char, Vec<u16>> {
     let answer = answer.to_lowercase();
     let mut letter_locations: HashMap<char, Vec<u16>> = HashMap::new();
@@ -160,7 +171,7 @@ fn get_word_progress(answer: &String, guessed_letters: &Vec<char>) -> String {
                     result.push('_')
                 }
             },
-            '\'' | '_' | ' ' => {
+            '\'' | ' ' | '-' => {
                 result.push(ch);
             },
             _ => {}
@@ -173,4 +184,18 @@ fn get_word_progress(answer: &String, guessed_letters: &Vec<char>) -> String {
 // Add a part of the crab to noose
 fn hang_crustacean_part() {
     return
+}
+
+fn check_victory(answer: &String, guessed_letters: &Vec<char>) -> bool {
+    let mut ans = &answer.replace(&['\'', '_', ' ', '-'][..], "");
+
+    let chars = ans.chars();
+    for ch in chars {
+        if guessed_letters.contains(&ch.to_lowercase().collect::<Vec<_>>()[0]) {
+            continue
+        }
+        return false
+    }
+
+    return true
 }
