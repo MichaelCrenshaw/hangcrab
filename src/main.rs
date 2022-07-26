@@ -76,7 +76,13 @@ fn main() {
             }
 
             let guess = &chars[0];
-            // todo: disable guessing the same letter twice
+
+            if guessed_letters.contains(&guess.to_lowercase().collect::<Vec<_>>()[0]) {
+                println!("You've already guessed {}", guess);
+                continue
+            }
+
+
             let guess_result = guess_letter(&chars[0], &letter_locations);
             match guess_result {
                 Some(v) => {guessed_letters.push(*guess); println!("Your guess was correct and appears {v} times")},
