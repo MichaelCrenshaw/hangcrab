@@ -145,8 +145,7 @@ fn guess_word(guess: &String, answer: &String) {
     return
 }
 
-// todo: remove this, this was the wrong way to do things.
-// ^_  It would have technically been faster... but much messier to handle the answer this way
+// This could be done with a vector instead, since we handle this type of logic with vectors later in the code anyways
 fn hashify_answer(answer: &String) -> HashMap<char, Vec<u16>> {
     let answer = answer.to_lowercase();
     let mut letter_locations: HashMap<char, Vec<u16>> = HashMap::new();
@@ -184,12 +183,6 @@ fn get_word_progress(answer: &String, guessed_letters: &Vec<char>) -> String {
         }
     }
     return result.to_owned();
-}
-
-// Possibly rename this, as it doesn't describe the function behavior very well
-// Add a part of the crab to noose
-fn hang_crustacean_part() {
-    return
 }
 
 fn check_victory(answer: &String, guessed_letters: &Vec<char>) -> bool {
