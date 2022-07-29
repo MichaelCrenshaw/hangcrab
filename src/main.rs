@@ -5,13 +5,10 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::ops::Add;
 use std::process;
+use std::process::exit;
 use rand::{random, Rng};
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-
-    // todo: declare all paths based on file rather than working directory
-    // todo: parse value from args and feed into get_phrase_list
     let passphrase_file_path = "wordlist.csv";
 
     let phrase_list = match get_phrase_list(passphrase_file_path) {
@@ -27,20 +24,26 @@ fn main() {
         println!("Starting new game");
         let answer = match get_random_phrase(&phrase_list) {
             Some(phrase) => phrase,
-            None => {
-                // todo: prompt for new filepath instead
-                panic!()
-            }
+            None => {"Word file not found, please check your executable's directory."; exit(1)}
         };
 
+        let mut lives = 5;
         let mut letter_locations: HashMap<char, Vec<u16>> = hashify_answer(&answer);
         let mut guessed_letters: Vec<char> = vec![];
 
         let mut winner = false;
         while !winner {
+            if lives == 0 {
+                println!("You've run out of guesses, your phrase was: {}", answer);
+                break
+            }
+
+
             let mut user_input: String = String::new();
-            // todo: handle errors gracefully
-            io::stdin().read_line(&mut user_input).expect("Failed to read line properly");
+            match io::stdin().read_line(&mut user_input) {
+                Ok(line) => {},
+                Err(e) => {println!("Couldn't read line, please try again"); continue}
+            }
 
             // remove newline characters from user input
             if user_input.ends_with('\n') {
@@ -89,7 +92,11 @@ fn main() {
                     guessed_letters.push(*&guess.to_lowercase().collect::<Vec<_>>()[0]);
                     println!("Your guess was correct and appears {v} times")
                 },
-                None => {println!("Guess again")}
+                None => {
+                    lives -= 1;
+                    let pluralized_word = if lives > 1 {"lives"} else {"life"};
+                    println!("Your letter was not in the phrase, you have {} {} left", lives, pluralized_word);
+                }
             }
 
             if check_victory(&answer, &guessed_letters) {
@@ -101,7 +108,7 @@ fn main() {
         }
     }
     println!("Thanks for playing hangcrab");
-    process::exit(0);
+    exit(0);
 }
 
 fn get_phrase_list(file_path: &str) -> Result<Vec<String>, Box<dyn Error>>{
@@ -137,7 +144,6 @@ fn guess_letter(guess: &char, letter_locations: &HashMap<char, Vec<u16>>) -> Opt
 fn guess_word(guess: &String, answer: &String) {
     return
 }
-
 
 // todo: remove this, this was the wrong way to do things.
 // ^_  It would have technically been faster... but much messier to handle the answer this way
