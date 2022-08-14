@@ -109,7 +109,7 @@ fn main() {
         }
     }
     println!("Thanks for playing hangcrab");
-    exit(0);
+    exit(0)
 }
 
 fn get_phrase_list(file_path: &str) -> Result<Vec<String>, Box<dyn Error>>{
@@ -124,13 +124,13 @@ fn get_phrase_list(file_path: &str) -> Result<Vec<String>, Box<dyn Error>>{
             phrases.push(String::from(row));
         }
     }
-    return Ok(phrases)
+    Ok(phrases)
 }
 
 fn get_random_phrase(word_list: &Vec<String>) -> Option<String> {
     let random_int = rand::thread_rng().gen_range(0..word_list.len());
     let phrase = word_list.get(random_int)?;
-    return Some(phrase.to_owned())
+    Some(phrase.to_owned())
 }
 
 // Consumes a guess, and the hashmap representation of the correct answer
@@ -139,7 +139,7 @@ fn guess_letter(guess: &char, letter_locations: &HashMap<char, Vec<u16>>) -> Opt
     if letter_locations.contains_key(guess) {
         return Some(letter_locations[guess].len() as u32);
     }
-    return None
+    None
 }
 
 fn guess_word(guess: &str, answer: &str) -> bool {
@@ -167,7 +167,7 @@ fn hashify_answer(answer: &String) -> HashMap<char, Vec<u16>> {
         letter_locations.insert(letter, vec![position]);
         position += 1;
     }
-    return letter_locations
+    letter_locations
 }
 
 fn get_word_progress(answer: &String, guessed_letters: &Vec<char>) -> String {
@@ -188,7 +188,7 @@ fn get_word_progress(answer: &String, guessed_letters: &Vec<char>) -> String {
             _ => {}
         }
     }
-    return result.to_owned();
+    result.to_owned()
 }
 
 fn check_victory(answer: &String, guessed_letters: &Vec<char>) -> bool {
@@ -201,6 +201,5 @@ fn check_victory(answer: &String, guessed_letters: &Vec<char>) -> bool {
         }
         return false
     }
-
-    return true
+    true
 }
