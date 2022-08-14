@@ -1,12 +1,9 @@
-use csv::Reader;
 use std::error::Error;
-use std::{env, io};
+use std::io;
 use std::collections::HashMap;
 use std::fs::File;
-use std::ops::Add;
-use std::process;
 use std::process::exit;
-use rand::{random, Rng};
+use rand::Rng;
 
 fn main() {
     let passphrase_file_path = "wordlist.csv";
@@ -19,6 +16,8 @@ fn main() {
         }
     };
 
+    println!("Please guess a letter, use !g to guess the phrase, or use !q to quit");
+
     let mut new_game = true;
     while new_game {
         println!("Starting new game");
@@ -28,7 +27,7 @@ fn main() {
         };
 
         let mut lives = 5;
-        let mut letter_locations: HashMap<char, Vec<u16>> = hashify_answer(&answer);
+        let letter_locations: HashMap<char, Vec<u16>> = hashify_answer(&answer);
         let mut guessed_letters: Vec<char> = vec![];
 
         let mut winner = false;
@@ -41,8 +40,8 @@ fn main() {
 
             let mut user_input: String = String::new();
             match io::stdin().read_line(&mut user_input) {
-                Ok(line) => {},
-                Err(e) => {println!("Couldn't read line, please try again"); continue}
+                Ok(_) => {},
+                Err(_) => {println!("Couldn't read line, please try again"); continue}
             }
 
             // remove newline characters from user input
@@ -58,23 +57,25 @@ fn main() {
                 continue
             }
 
-            let mut chars: Vec<char> = user_input.chars().collect();
+            let chars: Vec<char> = user_input.chars().collect();
 
             if chars[0] == '!' {
                 match chars[1] {
-                    'q' => {
+                    'q' | 'Q' => {
                         new_game = false;
                         break
                     },
+                    'g' | 'G' => {
+                        if guess_word(&String::from_iter(chars.iter())[3..], &answer[0..]) {
+                            winner = true;
+                            continue
+                        } else {
+                            lives -= 1;
+                            continue
+                        }
+                    },
                     _ => {}
                 }
-                continue
-            }
-
-            if user_input.len() > 1 {
-                println!("User input was large");
-                println!("{}", user_input.len());
-                guess_word(&user_input, &answer);
                 continue
             }
 
@@ -123,26 +124,31 @@ fn get_phrase_list(file_path: &str) -> Result<Vec<String>, Box<dyn Error>>{
             phrases.push(String::from(row));
         }
     }
-    Ok(phrases)
+    return Ok(phrases)
 }
 
 fn get_random_phrase(word_list: &Vec<String>) -> Option<String> {
     let random_int = rand::thread_rng().gen_range(0..word_list.len());
     let phrase = word_list.get(random_int)?;
-    Some(phrase.to_owned())
+    return Some(phrase.to_owned())
 }
 
 // Consumes a guess, and the hashmap representation of the correct answer
 // Returns a vector of the positions that letter is found at in the answer string.
 fn guess_letter(guess: &char, letter_locations: &HashMap<char, Vec<u16>>) -> Option<u32> {
     if letter_locations.contains_key(guess) {
-        return Some(letter_locations[guess].len() as u32)
+        return Some(letter_locations[guess].len() as u32);
     }
     return None
 }
 
-fn guess_word(guess: &String, answer: &String) {
-    return
+fn guess_word(guess: &str, answer: &str) -> bool {
+    if guess.to_lowercase() == answer.to_lowercase() {
+        println!("You guessed the correct phrase!");
+        return true;
+    }
+    println!("{} isn't equal to {}", guess, answer);
+    false
 }
 
 // This could be done with a vector instead, since we handle this type of logic with vectors later in the code anyways
@@ -186,7 +192,7 @@ fn get_word_progress(answer: &String, guessed_letters: &Vec<char>) -> String {
 }
 
 fn check_victory(answer: &String, guessed_letters: &Vec<char>) -> bool {
-    let mut ans = &answer.replace(&['\'', '_', ' ', '-'][..], "");
+    let ans = &answer.replace(&['\'', '_', ' ', '-'][..], "");
 
     let chars = ans.chars();
     for ch in chars {
